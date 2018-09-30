@@ -1,0 +1,352 @@
+@charset "utf-8";
+/* CSS Document */
+/* Universal style changing pt to px in order to allow cleaner responsiveness */
+
+
+body,td,th,p{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	color: #333;
+	line-height: 1.5;
+}
+/* Adding a max-width/auto margin in order to allow the space to max out and remain accessible at larger screen sizes and limit the amount of customization necessary beyond a certain screen size */
+body {
+	background-color: #fdfdfd;
+	margin: 0;
+  position:relative;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+ul, li {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10px;
+	color: #333;
+}
+a {
+	color: orange;
+	text-decoration: none;
+}
+a:hover, a:focus {
+	color: #fa7923;
+  text-decoration: none;
+  border-width: 10px;
+}
+a img{
+	border: none 0px #fff;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0 0 20px;
+}
+article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+/* Adding flex to the #maincontent container in order to control each section in the overall flow */
+#maincontent {
+  background-color: #f3f3f3;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#footer {
+  background-color: #333;
+  color: #aaa;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 25px;
+  text-align: center;
+  text-transform: uppercase;
+}
+/* ====================== Navigation ====================== */
+nav {
+  width: 100%;
+  /* removed artificial height to allow for better responsiveness, accomplished with padding on nav h1 element */
+  background-color: #252831;
+  text-align:center;
+}
+nav h1 {
+  margin: auto;
+  padding: 30px 30px;
+}
+nav h1 a {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 200;
+  letter-spacing: 10px;
+  text-transform: uppercase;
+}
+#breadcrumb {
+    padding: 15px;
+    list-style: none;
+    background-color: #eee;
+    font-size: 17px;
+    margin: 0;
+    max-width: 100%;
+}
+
+/* Display list items side by side */
+#breadcrumb li {
+    display: inline;
+}
+
+/* Add a slash symbol (/) before/behind each list item */
+#breadcrumb li+li:before {
+    padding: 8px;
+    color: black;
+    content: "/\00a0";
+}
+
+/* Add a color to all links inside the list */
+#breadcrumb li a {
+    color: #0275d8;
+    text-decoration: none;
+}
+
+/* Add a color on mouse-over */
+#breadcrumb li a:hover {
+    color: #01447e;
+    text-decoration: underline;
+}
+/* ====================== Map ====================== */
+#map {
+  height: 400px;
+  width: 100%;
+  background-color: #ccc;
+}
+/* ====================== Restaurant Filtering ====================== */
+.filter-options {
+  width: 100%;
+  /* eliminate height; control with padding */
+  padding: 10px 0px;
+  background-color: #252831;
+  align-items: center;
+}
+.filter-options h2 {
+  color: white;
+  font-size: 1rem;
+  font-weight: normal;
+  line-height: 1;
+  margin: 0 20px;
+}
+.filter-options select {
+  background-color: white;
+  border: 1px solid #fff;
+  font-family: Arial,sans-serif;
+  font-size: 12px;
+  height: 35px;
+  letter-spacing: 0;
+  margin: 10px;
+  padding: 10px;
+  width: 200px;
+}
+/* Flex box layout for the filter results to allow for the space to adjust 
+to smaller displays and still retain useability */
+.selection-filters-flex {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: left;
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
+.hidden-accessibility-label {
+  position: absolute;
+  left: -7000px;
+  z-index: 100;
+  background: #fff;
+}
+/* ====================== Restaurant Listing ====================== */
+/* The general approach to restructuring and reflowing the main page was inspired
+  by viewing Doug Brown's mws-project-1 walkthrough posted by Udacity on Youtube. Notes
+  taken in the course of viewing the video led to many of the design decisions, while 
+  some of his design choices didn't work for my final approach, some of the formatting
+  and image. 
+  Last reviewed 7/23/2018 @ https://www.youtube.com/watch?v=92dtrNU1GQc
+*/ 
+
+/* Primary opportunity for mobile responsiveness; strategy is to flexbox the div containing 
+the listings and add @media queries to provide breakpoints for the flow of the list of restaurant choices */
+
+#restaurants-list {
+  background-color: #f3f3f3;
+  list-style: outside none none;
+  margin: 0;
+  padding: 30px 15px 60px;
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: center;
+}
+/* With max-width of body set to 1200, and the number of list items,
+a max-width of the li element of 300px allows for each item to expand 
+naturally and fill the space evenly */
+#restaurants-list li {
+  background-color: #fff;
+  border: 2px solid #ccc;
+  font-family: Arial,sans-serif;
+  margin: 15px;
+  min-height: 380px;
+  padding: 0 0 25px;
+  text-align: center;
+  min-width: 270px;
+  max-width: 300px;
+}
+
+/* first media query breaks single column to double column
+   second media query breaks double column to triple column */
+@media screen and (max-width: 709px) {
+  #restaurants-list li {
+    min-width: 80%;
+  } 
+}
+@media screen and (max-width: 1031px) {
+  #restaurants-list li {
+    max-width: 45%;
+  }
+}
+#restaurants-list .restaurant-img {
+  background-color: #ccc;
+  display: block;
+  margin: 0;
+  max-width: 100%;
+  /* min-height by pixel causing image distortion */
+  min-width: 100%;
+}
+#restaurants-list li h1 {
+  color: #f18200;
+  font-family: Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 200;
+  letter-spacing: 0;
+  line-height: 1.3;
+  margin: 20px 0 10px;
+  text-transform: uppercase;
+}
+#restaurants-list p {
+  margin: 0;
+  font-size: 12px;
+}
+#restaurants-list li a {
+  background-color: rgb(0, 0, 0);
+  border-bottom: 3px solid #eee;
+  color: #f18200;
+  display: inline-block;
+  font-size: 12px;
+  margin: 15px 0 0;
+  padding: 8px 30px 10px;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+/* ====================== Restaurant Details ====================== */
+/* The general approach to restructuring and reflowing the details page was inspired
+  by viewing Doug Brown's mws-project-1 walkthrough posted by Udacity on Youtube. Notes
+  taken in the course of viewing the video led to many of the design decisions, while 
+  some of his design choices didn't work for my final approach, some of the formatting
+  and image. 
+  Last reviewed 7/23/2018 @ https://www.youtube.com/watch?v=92dtrNU1GQc
+*/ 
+
+/* removed .inside header to check the effect on the page. The formatting in this header
+was causing significant layout and flow issues around flex
+*/
+
+/* removed excess formatting from map container that was forcing the item to the right and
+affecting other responsiveness
+*/
+.inside #map-container {
+  background: blue none repeat scroll 0 0;
+  height: 300px;
+}
+.inside #map {
+  background-color: #ccc;
+  height: 100%;
+  width: 100%;
+}
+/* removed formatting for footer altogether as inherited footer format was sufficient for
+controlling placement on the page
+*/
+#restaurant-name {
+  color: #f18200;
+  font-family: Arial,sans-serif;
+  font-size: 26px;
+  font-weight: 200;
+  letter-spacing: 0;
+  margin: 10px 10px 10px 10px;
+  text-transform: uppercase;
+}
+/*removing restaurant image from details page as it is unnecessary and doesn't add
+valuable information*/
+
+#location-address-hours {
+  padding: 10px 10px;
+}
+
+#restaurant-address {
+  font-size: 16px;
+}
+#restaurant-cuisine {
+  background-color: #333;
+  color: #ddd;
+  font-size: 16px;
+  font-weight: 300;
+  letter-spacing: 10px;
+  margin: 0 0 20px;
+  padding: 2px 0;
+  text-align: center;
+  text-transform: uppercase;
+	width: 100%;
+}
+/* for responsiveness, removed padding and width set so the space could adapt to the window */
+#restaurant-container, #reviews-container {
+  border-bottom: 1px solid #d9d9d9;
+  border-top: 1px solid #fff;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+}
+.flex-layout-location-hours {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px;
+}
+
+#reviews-container {
+  padding: 30px 40px 80px;
+}
+#reviews-container h2 {
+  color: #f58500;
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: -1px;
+  padding-bottom: 1px;
+}
+#reviews-list {
+  margin: 0;
+  padding: 0;
+}
+#reviews-list li {
+  background-color: #fff;
+  border: 2px solid #f3f3f3;
+  display: block;
+  list-style-type: none;
+  margin: 0 0 30px;
+  overflow: hidden;
+  padding: 10px 20px 20px;
+  position: relative;
+}
+#reviews-list li p {
+  margin: 0 0 10px;
+}
+#restaurant-hours td {
+  color: #666;
+}
+nav {
+  text-align: left;
+}
