@@ -40,14 +40,14 @@ var idbProject = (function() {
 
   //add restaurants to the database
     function addRestaurants() {
-      fetch(DBHelper.DATABASE_URL)
+      fetch(DBHelper.DATABASE_RESTAURANT_URL)
       .then(response => response.json())
       .then(function(restaurants) {
-        console.log('Add restaurant to cache: ', restaurants);
-        dbPromise.then((db) => {
+        console.log('addedRestaurants pulled from JSON');
+        //cache it
+        dbPromise.then( (db) => {
           let restaurantValStore = db.transaction('restaurants', 'readwrite').objectStore('restaurants')
             for (const restaurant of restaurants) {
-              console.log('added restaurant: ', restaurant);
               restaurantValStore.put(restaurant)
             }
         })
@@ -62,9 +62,37 @@ var idbProject = (function() {
       })
     }
 
-// add reviews to the database
+// add reviews to database
+debugger;
+function addReviews(id, callback) {
+  fetch(DBHelper.DATABASE_REVIEW_URL + id)
+    .then (response => response.json())
+    .then (function(reviews) {
+      console.log('successfully pulled review json data')
+      // now cache it
+    dbPromise.then ( (db) => {
+      if (!db) return;
+
+      let reviewValStore = db.transaction('reviews', 'readwrite').objectStore('reviews')
+        for (const review of reviews) {
+          reviewValStore.put(review)
+        }
+        callback(null, reviews);
+    })
+    .catch(error => {
+      let reviewValStore = db.transaction('reviews', 'restaurant', id)
+      .then ((storedReviews) => {
+        console.log('getting offline reviews');
+        return Promise.resolve(storedReviews);
+      })
+    })
+    })
+
+}
+/*    
+  // add reviews to the database
     function addReviews(id, callback) {
-      fetch(DBHelper.DATABASE_REVIEW_URL + id)
+      fetch(DBHelper.DATABASE + 'reviews/?restaurant_id=' + id)
       .then (response => response.json())
       .then (function(reviews) {
         console.log('successfully pulled review json data')
@@ -87,6 +115,7 @@ var idbProject = (function() {
         })
       })
     }
+*/
 
     //update the restaurant with favorites
     function updateRestaurant(id, newState) {
@@ -152,6 +181,7 @@ var idbProject = (function() {
       dbPromise: (dbPromise),
       addRestaurants: (addRestaurants),
       addReviews: (addReviews),
+      updateRestaurant: (updateRestaurant),
       getByID: (getByID),
       getAll: (getAll),
       addPending: (addPending)

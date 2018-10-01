@@ -8,7 +8,7 @@ class DBHelper {
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
-  static get DATABASE_URL() {
+  static get DATABASE_RESTAURANT_URL() {
     return `http://localhost:${port}/restaurants`;
   }
 
@@ -31,7 +31,7 @@ class DBHelper {
     idbProject.addRestaurants(callback);
     //if database hasn't populated, pull from server and populate
     if(!restaurants) {
-      fetch(DBHelper.DATABASE_URL)
+      fetch(DBHelper.DATABASE_RESTAURANT_URL)
       .then(function(response) {
         //get from URL
         return response.json();

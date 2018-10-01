@@ -67,6 +67,7 @@ initMap = () => {
 fetchRestaurantFromURL = (callback) => {
   if (self.restaurant) { // restaurant already fetched!
     callback(null, self.restaurant)
+    console.log('fetchRestaurantFromURL first return triggered')
     return;
   }
   const id = getParameterByName('id');
@@ -110,7 +111,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  fillReviewsHTML();
+  idbProject.addReviews(restaurant.id, fillReviewsHTML);
 }
 
 /**
@@ -137,6 +138,11 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
  * Create all reviews HTML and add them to the webpage.
  */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+  self.restaurant.reviews = reviews;
+  console.log(reviews);
+  if (error) {
+    console.log("Error retrieving review: ", error);
+  }
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
