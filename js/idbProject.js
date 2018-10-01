@@ -62,8 +62,7 @@ var idbProject = (function() {
       })
     }
 
-// add reviews to database
-debugger;
+// add reviews to database 
 function addReviews(id, callback) {
   fetch(DBHelper.DATABASE_REVIEW_URL + id)
     .then (response => response.json())

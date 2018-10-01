@@ -137,7 +137,7 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+const fillReviewsHTML = (error, reviews) => {
   self.restaurant.reviews = reviews;
   console.log(reviews);
   if (error) {
@@ -166,12 +166,23 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
  */
 createReviewHTML = (review) => {
   const li = document.createElement('li');
+  //check online status for pulling reviews first
+  var navNetworkStatus = window.navigator.onLine;
+  if (navNetworkStatus != true) {
+    console.log(navNetworkStatus);
+    const connection_status = document.createElement('p');
+    connection_status.classList.add('offline_label')
+    connection_status.innerHTML = "Offline"
+    li.classList.add('reviews_offline')
+    li.appendChild(connection_status);
+  }
+
   const name = document.createElement('p');
-  name.innerHTML = review.name;
+  name.innerHTML = `Name: ${review.name}`;
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  date.innerHTML = `Date ${new Date(review.createdAt).toLocaleString()}`;
   li.appendChild(date);
 
   const rating = document.createElement('p');
