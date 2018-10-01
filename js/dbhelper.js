@@ -13,6 +13,7 @@ class DBHelper {
   }
 
   static get DATABASE_REVIEW_URL() {
+    console.log('Accessed review url builder');
     return `http://localhost:${port}/reviews/?restaurant_id=`;
   }
 
