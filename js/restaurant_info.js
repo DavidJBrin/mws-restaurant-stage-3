@@ -45,22 +45,6 @@ initMap = () => {
   });
 }  
  
-/* window.initMap = () => {
-  fetchRestaurantFromURL((error, restaurant) => {
-    if (error) { // Got an error!
-      console.error(error);
-    } else {
-      self.map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 16,
-        center: restaurant.latlng,
-        scrollwheel: false
-      });
-      fillBreadcrumb();
-      DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
-    }
-  });
-} */
-
 /**
  * Get current restaurant from page URL.
  */
@@ -85,12 +69,13 @@ fetchRestaurantFromURL = (callback) => {
       callback(null, restaurant)
     });
   }
-}
+};
 
 /**
  * Create restaurant HTML and add it to the webpage
  */
 fillRestaurantHTML = (restaurant = self.restaurant) => {
+  let favorite;
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
 
@@ -106,6 +91,19 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
 
+  favorite = document.getElementById('restaurant-favorite');
+  if (restaurant.is_favorite === "undefined")
+    restaurant.is_favorite="false";
+  favorite.setAttribute('aria-label', 'Click to favorite or unfavorite' + restaurant.name)
+
+  favorite.onclick = event => handleFavoriteClick(restaurant.id, restaurant.is_favorite);
+  if (restaurant.is_favorite === "true") {
+    favorite.innerText = '❤' + restaurant.name;
+  }
+  else {
+    favorite.innerText =  '♡' + restaurant.name;
+}
+
   // fill operating hours
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
@@ -115,11 +113,11 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   review = document.getElementById('restaurant-review-form');
   review.href = DBHelper.urlForReviewForm(restaurant);
   review.setAttribute('aria-label', 'Review form for ' + restaurant.name);
-  review.innerText = "Add your own Review";
+  review.innerText = "Add Review";
 
   // fill reviews
   idbProject.addReviews(restaurant.id, fillReviewsHTML);
-}
+};
 
 /**
  * Create restaurant operating hours HTML table and add it to the webpage.
@@ -139,7 +137,7 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 
     hours.appendChild(row);
   }
-}
+};
 
 /**
  * Create all reviews HTML and add them to the webpage.
@@ -166,24 +164,13 @@ const fillReviewsHTML = (error, reviews) => {
     ul.appendChild(createReviewHTML(review));
   });
   container.appendChild(ul);
-}
+};
 
 /**
  * Create review HTML and add it to the webpage.
  */
 createReviewHTML = (review) => {
   const li = document.createElement('li');
-  //check online status for pulling reviews first
-  var navNetworkStatus = window.navigator.onLine;
-  if (navNetworkStatus != true) {
-    console.log(navNetworkStatus);
-    const connection_status = document.createElement('p');
-    connection_status.classList.add('offline_label')
-    connection_status.innerHTML = "Offline"
-    li.classList.add('reviews_offline')
-    li.appendChild(connection_status);
-  }
-
   const name = document.createElement('p');
   name.innerHTML = `Name: ${review.name}`;
   li.appendChild(name);
@@ -201,7 +188,9 @@ createReviewHTML = (review) => {
   li.appendChild(comments);
 
   return li;
-}
+};
+
+
 
 /**
  * Add restaurant name to the breadcrumb navigation menu
@@ -211,7 +200,7 @@ fillBreadcrumb = (restaurant=self.restaurant) => {
   const li = document.createElement('li');
   li.innerHTML = restaurant.name;
   breadcrumb.appendChild(li);
-}
+};
 
 /**
  * Get a parameter by name from page URL.
@@ -227,4 +216,21 @@ getParameterByName = (name, url) => {
   if (!results[2])
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
+};
+
+const handleFavoriteClick = (id, newState) => {
+  favorite = document.getElementById('restaurant-favorite');
+  // Update properties of the restaurant data object
+  if (newState === "true") {
+    favorite.innerText = '♡' + this.restaurant.name;
+    newState = "false";
+    this.restaurant.is_favorite = "false";
+  }
+  else {
+    favorite.innerText =  '❤' + this.restaurant.name;
+    newState = "true";
+    this.restaurant.is_favorite = "true";
+
+  }
+  idbProject.updateRestaurant(id, newState);
+};

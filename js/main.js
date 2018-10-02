@@ -165,7 +165,15 @@ createRestaurantHTML = (restaurant) => {
 
 /* changing h1->h2 to maintain hierarchy for Accessibility */
   const name = document.createElement('h2');
-  name.innerHTML = restaurant.name;
+  let faveName;
+  if (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true")
+  { 
+    faveName = '❤' + restaurant.name;
+  }
+  else {
+    faveName = '♡' + restaurant.name;
+  }
+  name.innerHTML = faveName;
   li.append(name);
 
   const neighborhood = document.createElement('p');
@@ -199,14 +207,3 @@ addMarkersToMap = (restaurants = self.restaurants) => {
   });
 
 } 
-/* addMarkersToMap = (restaurants = self.restaurants) => {
-  restaurants.forEach(restaurant => {
-    // Add marker to the map
-    const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
-    google.maps.event.addListener(marker, 'click', () => {
-      window.location.href = marker.url
-    });
-    self.markers.push(marker);
-  });
-} */
-

@@ -16,21 +16,20 @@ var idbProject = (function() {
     }
   
     // initiate DB magic and mumbojumbo
-    var dbPromise = idb.open('brinRRstage3', 4, function(upgradeDB) {
+    var dbPromise = idb.open('brinRRstage3', 3, function(upgradeDB) {
       switch (upgradeDB.oldVersion) {
         case 0:
-        case 1:
           {
             console.log('Establishing object store for the project');
             upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
           }
-        case 2:
+        case 1:
           {
             console.log('Creating Review Object Store');
             const reviewsStore = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
             reviewsStore.createIndex('restaurant_id', 'restaurant_id');
           }
-        case 3: 
+        case 2: 
           {
             console.log('creating the offline-pending object store');
             upgradeDB.createObjectStore('pending', {keyPath: 'id', autoIncrement: true});

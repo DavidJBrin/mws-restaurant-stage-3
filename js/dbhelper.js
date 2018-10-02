@@ -206,69 +206,6 @@ class DBHelper {
     return marker;
   } 
   
-  //Create js behavior for saving the review
-  static saveReview(id, name, rating, comment, callback) {
-    // Block any more clicks on the submit button until the callback
-    const btn = document.getElementById("btnSaveReview");
-    btn.onclick = null;
-    // Create the POST body
-    const body = {
-      restaurant_id: id,
-      name: name,
-      rating: rating,
-      comments: comment,
-      createdAt: Date.now()
-    }
-    let offline_obj = {
-      name:'addReview',
-      data: body,
-      object_type: 'review'
-    };
-    //Check if offline
-    if (!navigator.onLine && (offline_obj.name === 'addReview')) {
-      sendDataWhenOnline(offLine_obj);
-      return;
-    }
-    console.log(body);
-    const url = `${this.DATABASE_ADD_REVIEW_URL}`;
-    console.log(url);
-    const method = "POST";
-    const properties = {
-      body: JSON.stringify(body),
-      method: method
-    }
-    fetch (url, properties)
-    .then(response => response.json())
-    .catch(error => console.error("Adding Review failed"))
-    .then(response => console.log('Review was added'));
-    callback(null, null);
-  }
   
-  static sendDataWhenOnline(offline_obj) {
-    console.log('Offline Obj', offline_obj);
-    localStorage.setItem('data', JSON.stringify(offline_obj.data));
-    console.log(`Local Storage: ${offline_obj.object_type} store`);
-    window.addEventListener('online', (event) => {
-      console.log('Browser: Online again!');
-      let data = JSON.parse(localStorage.getItem('data'));
-      console.log('updating and cleanin ui');
-      [...document.querySelectorAll(".reviews_offline")]
-      .forEach(e => {
-        el.classList.remove("reviews_offline")
-        el.querySelector(".offline_label").remove()
-      });
-      if (data != null) {
-        console.log(data);
-        if (offline_obj.name === 'addReview') {
-          DBHelper.addReview(offline_obj.data);
-        }
-
-        console.log('LocalState: data sent to api');
-
-        localStorage.removeItem('data');
-        console.log(`Local Storage: $(offline_obj.object_type} removed`);
-      }
-      });
-    }
 }
 

@@ -76,26 +76,35 @@ getParameterByName = (name, url) => {
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
+const handleFavoriteClick = (id, newState) => {
+    const favorite = document.getElementById("favorite-icon" + id);
+    self.restaurant["is_favorite"] = newState;
+    favorite.onclick = event => handleFavoriteClick(restaurant.id, !self.restaurant["is_favorite"]);
+    DBHelper.handleFavoriteClick(id, newState);
+  };
+
 //function to support the dbhelper saveReview static
-function saveReview() {
+const saveReview = () => {
     const name = document
-        .getElementById('review-name')
+        .getElementById("reviewName")
         .value;
     const rating = document
-        .getElementById('review-rating')
-        .value;
+        .getElementById("reviewRating")
+        .value - 0;
     const comment = document
-        .getElementById('review-comment')
+        .getElementById("reviewComment")
         .value;
-    console.log("Review" + name + rating + comment);
+    
+    console.log("reviewName: ", name);
+
     DBHelper.saveReview(self.restaurant.id, name, rating, comment, (error, review) => {
-        console.log('SaveReview Callback received');
+        console.log("SaveReview Callback woot");
         if (error) {
-            console.log('Error saving the review');
+            console.log("ERROR Review NOT Saved")
         }
-        //update reviews on clickevent
-        const btn = document.getElementById('btnSaveReview');
+        const btn = document.getElementById("btnSaveReview");
         btn.onclick = event => saveReview();
-        window.location.href = "/restaurant.html?id=" + self.restaurant.id;
+
+        window.location.href= "/restaurant.html?id=" + self.restaurant.id;
     });
 }
