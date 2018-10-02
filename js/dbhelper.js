@@ -179,6 +179,9 @@ class DBHelper {
     return (`./restaurant.html?id=${restaurant.id}`);
   }
 
+  static urlForReviewForm(restaurant) {
+    return (`./review.html?id=${restaurant.id}`);
+  }
   /**
    * Restaurant image URL.
    */
@@ -186,7 +189,7 @@ class DBHelper {
     //fix the record with missing id field
     if (restaurant.photograph == undefined)
       restaurant.photograph = restaurant.id;
-    return (`/img/${restaurant.photograph}.jpg`);
+    return (`/img/${restaurant.photograph}` + ".jpg");
   }
 
   /**
@@ -222,7 +225,7 @@ class DBHelper {
       objtect_type: 'review'
     };
     //Is it offline? Let's see...
-    if(!navigator.online && (offline_obj.name === 'addReview')) {
+    if(!window.navigator.online && (offline_obj.name === 'addReview')) {
       console.log("Offline - sending review when online status resumed");
       sendDataWhenOnline(offline_obj);
       return;
@@ -230,7 +233,7 @@ class DBHelper {
     console.log(body);
     const url = `${this.DATABASE_ADD_REVIEW_URL}`;
     console.log(url);
-    const method = "Post";
+    const method = "POST";
     const properties = {
       body: JSON.stringify(body),
       method: method
