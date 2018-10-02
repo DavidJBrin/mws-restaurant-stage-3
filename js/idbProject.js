@@ -88,33 +88,7 @@ function addReviews(id, callback) {
     })
 
 }
-/*    
-  // add reviews to the database
-    function addReviews(id, callback) {
-      fetch(DBHelper.DATABASE + 'reviews/?restaurant_id=' + id)
-      .then (response => response.json())
-      .then (function(reviews) {
-        console.log('successfully pulled review json data')
-        //load to db next
-        dbPromise.then ( (db) => {
-          if (!db) return;
-          let reviewValStore = db.transaction('reviews', 'readwrite').objectStore('reviews')
-            for (const review of reviews) {
-              reviewValStore.put(review)
-            }
-            console.log('wrote reviews to db');
-            callback(null, reviews);
-        })
-        .catch(error => {
-          let reviewValStore = db.transaction('reviews', 'restaurant', id)
-          .then ((storedReviews) => {
-            console.log('getting offline reviews');
-            return Promise.resolve(storedReviews);
-          })
-        })
-      })
-    }
-*/
+
 
     //update the restaurant with favorites
     function updateRestaurant(id, newState) {

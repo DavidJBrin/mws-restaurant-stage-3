@@ -15,6 +15,7 @@ self.addEventListener('install', function(event) {
                     './',
                     './index.html',
                     './restaurant.html',
+                    './review.html',
                     './manifest.json',
                     './css/styles.css',
                     './img/',
@@ -24,6 +25,7 @@ self.addEventListener('install', function(event) {
                     './js/idbProject.js',
                     './js/main.js',
                     './js/restaurant_info.js',
+                    './js/review.js',
                     './sw.js'   
                 ]
             );

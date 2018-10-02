@@ -208,10 +208,10 @@ class DBHelper {
   
   //Create js behavior for saving the review
   static saveReview(id, name, rating, comment, callback) {
-    //don't allow submission of blank reviews
+    // Block any more clicks on the submit button until the callback
     const btn = document.getElementById("btnSaveReview");
     btn.onclick = null;
-    //create the body to POST via method
+    // Create the POST body
     const body = {
       restaurant_id: id,
       name: name,
@@ -222,12 +222,11 @@ class DBHelper {
     let offline_obj = {
       name:'addReview',
       data: body,
-      objtect_type: 'review'
+      object_type: 'review'
     };
-    //Is it offline? Let's see...
-    if(!window.navigator.online && (offline_obj.name === 'addReview')) {
-      console.log("Offline - sending review when online status resumed");
-      sendDataWhenOnline(offline_obj);
+    //Check if offline
+    if (!navigator.onLine && (offline_obj.name === 'addReview')) {
+      sendDataWhenOnline(offLine_obj);
       return;
     }
     console.log(body);
@@ -240,8 +239,8 @@ class DBHelper {
     }
     fetch (url, properties)
     .then(response => response.json())
-    .catch(error => console.error("Could not add Review - Failed"))
-    .then(response => console.log('Added the review successfully'));
+    .catch(error => console.error("Adding Review failed"))
+    .then(response => console.log('Review was added'));
     callback(null, null);
   }
   
@@ -250,9 +249,9 @@ class DBHelper {
     localStorage.setItem('data', JSON.stringify(offline_obj.data));
     console.log(`Local Storage: ${offline_obj.object_type} store`);
     window.addEventListener('online', (event) => {
-      console.log('Browser Back Online!');
+      console.log('Browser: Online again!');
       let data = JSON.parse(localStorage.getItem('data'));
-      console.log('update and clean up the ui');
+      console.log('updating and cleanin ui');
       [...document.querySelectorAll(".reviews_offline")]
       .forEach(e => {
         el.classList.remove("reviews_offline")
@@ -263,11 +262,13 @@ class DBHelper {
         if (offline_obj.name === 'addReview') {
           DBHelper.addReview(offline_obj.data);
         }
-        console.log('Local State: data sent to api');
+
+        console.log('LocalState: data sent to api');
+
         localStorage.removeItem('data');
-        console.log(`Local storage ${(offline_ojb.object_type)} removed`);
+        console.log(`Local Storage: $(offline_obj.object_type} removed`);
       }
-    });
-  }
+      });
+    }
 }
 
