@@ -234,6 +234,7 @@ class DBHelper {
   }
 
   static nextPending() {
+    const dbPromise = idb.open("brinRRstage3");
     DBHelper.attemptCommitPending(DBHelper.nextPending);
   }
 
@@ -247,9 +248,11 @@ class DBHelper {
   */
   static attemptCommitPending(callback) {
     // Iterate over the pending items until there is a network failure
+    console.log("attemp")
     let url;
     let method;
     let body;
+    const dbPromise = idb.open("brinRRstage3");
     dbPromise.then(db => {
       if (!db.objectStoreNames.length) {
         console.log("DB not available");
@@ -336,7 +339,7 @@ class DBHelper {
           keys.forEach(k => {
             restaurantObj[k] = updateObj[k];
           })
-          dbPromise.tehn(db => {
+          dbPromise.then(db => {
             const tx = db.transaction("restaurants", "readwrite");
             tx
               .objectStore("restaurant")
@@ -384,13 +387,13 @@ class DBHelper {
   //cache iteration to prep for new review input
   static updateCachedRestaurantReview(id, bodyObj) {
     console.log("Lets update cache for new review: ", bodyObj);
+    const dbPromise = idb.open("brinRRstage3");
     dbPromise.then(db => {
       const tx = db.transaction("reviews", "readwrite");
       const store = tx.objectStore("reviews");
       console.log("putting the review in question into store");
       store.put({
-        id: Date.now(),
-        "restaurant_id": id,
+        id: "restaurant_id",
         data: bodyObj
       });
       console.log("I put the cached review in the store");
@@ -400,6 +403,7 @@ class DBHelper {
 
   //function to handle new reviews coming up through the interface
   static saveNewReview(id, bodyObj, callback) {
+    const dbPromise = idb.open("brinRRstage3");
     const url = `${DBHelper.DATABASE_REVIEWS_URL}`;
     const method = "POST";
     DBHelper.updateCachedRestaurantReview(id, bodyObj);
@@ -434,3 +438,4 @@ class DBHelper {
     })
   }
 }
+window.DBHelper = DBHelper;

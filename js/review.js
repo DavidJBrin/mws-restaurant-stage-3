@@ -105,7 +105,8 @@ const saveReview = () => {
         }
         const btn = document.getElementById("btnSaveReview");
         btn.onclick = event => saveReview();
-
+        debugger;
         window.location.href= "/restaurant.html?id=" + self.restaurant.id;
+        debugger;
     });
 }
