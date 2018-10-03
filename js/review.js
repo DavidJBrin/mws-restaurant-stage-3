@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             console.error(error);
         }
         else {
+            console.log("filling breadcrumb");
             fillBreadcrumb();
         }
     });

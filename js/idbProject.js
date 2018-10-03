@@ -16,7 +16,7 @@ var idbProject = (function() {
     }
   
     // initiate DB magic and mumbojumbo
-    var dbPromise = idb.open('brinRRstage3', 3, function(upgradeDB) {
+    const dbPromise = idb.open('brinRRstage3', 3, function(upgradeDB) {
       switch (upgradeDB.oldVersion) {
         case 0:
           {
