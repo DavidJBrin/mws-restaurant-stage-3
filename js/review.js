@@ -86,6 +86,7 @@ const handleFavoriteClick = (id, newState) => {
 
 //function to support the dbhelper saveReview static
 const saveReview = () => {
+    const dbPromise = idb.open("brinRRstage3");
     const name = document
         .getElementById("reviewName")
         .value;
