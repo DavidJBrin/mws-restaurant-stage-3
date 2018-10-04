@@ -90,7 +90,7 @@ function addReviews(id, callback) {
 
 
     //update the restaurant with favorites
-    function updateRestaurant(id, newState) {
+    function updateFavorite(id, newState) {
       const url = DBHelper.DATABASE_RESTAURANT_URL + `/${id}/?is_favorite=${newState}`;
       console.log(url);
       const method = "PUT";
@@ -153,7 +153,7 @@ function addReviews(id, callback) {
       dbPromise: (dbPromise),
       addRestaurants: (addRestaurants),
       addReviews: (addReviews),
-      updateRestaurant: (updateRestaurant),
+      updateFavorite: (updateFavorite),
       getByID: (getByID),
       getAll: (getAll),
       addPending: (addPending)

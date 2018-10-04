@@ -86,7 +86,7 @@ const handleFavoriteClick = (id, newState) => {
 
 //function to support the dbhelper saveReview static
 const saveReview = () => {
-    const dbPromise = idb.open("brinRRstage3");
+    
     const name = document
         .getElementById("reviewName")
         .value;
@@ -98,16 +98,10 @@ const saveReview = () => {
         .value;
     
     console.log("reviewName: ", name);
-
-    DBHelper.saveReview(self.restaurant.id, name, rating, comment, (error, review) => {
-        console.log("SaveReview Callback woot");
-        if (error) {
-            console.log("ERROR Review NOT Saved")
-        }
-        const btn = document.getElementById("btnSaveReview");
-        btn.onclick = event => saveReview();
-        debugger;
-        window.location.href= "/restaurant.html?id=" + self.restaurant.id;
-        debugger;
-    });
+    
+    DBHelper.saveReview(self.restaurant.id, name, rating, comment)
+        .then(() => {
+            window.location.href= "/restaurant.html?id=" + self.restaurant.id;
+        })
+        .catch()//dbhelper.deferoffline);
 }

@@ -207,218 +207,10 @@ class DBHelper {
   } 
   
   /*
-  Queueing mechanism as explained and demonstrated by Doug Brown 10/2/2018 via private
-  chat and in review of 
-  https://github.com/thefinitemonkey/udacity-restaurant-reviews/blob/master/app/js/dbhelper.js
-  Previous approach was failing to write/add new reviews to the database. Stripped out
-  old approach, discussed the mechanisms in place with Brown, and implementated. Names and
-  functions have been tweaked to protect the clueless innocent.
-  */
-
-  static addPendingRequestToQueue(url, method, body) {
-    const dbPromise = idb.open("brinRRstage3");
-    dbPromise.then(db => {
-      const tx = db.transaction("pending", "readwrite");
-      tx
-      .objectStore("pending")
-      .put({
-        data: {
-          url,
-          method,
-          body
-        }
-     })
-  })
-  .catch(error=> {})
-  .then(DBHelper.nextPending());
-  }
-
-  static nextPending() {
-    const dbPromise = idb.open("brinRRstage3");
-    DBHelper.attemptCommitPending(DBHelper.nextPending);
-  }
-
-  /*
-  Queueing mechanism as explained and demonstrated by Doug Brown 10/2/2018 via private
-  chat and in review of 
-  https://github.com/thefinitemonkey/udacity-restaurant-reviews/blob/master/app/js/dbhelper.js
-  Previous approach was failing to write/add new reviews to the database. Stripped out
-  old approach, discussed the mechanisms in place with Brown, and implementated. Names and
-  functions have been tweaked to protect the clueless innocent.
-  */
-  static attemptCommitPending(callback) {
-    // Iterate over the pending items until there is a network failure
-    console.log("attemp")
-    let url;
-    let method;
-    let body;
-    const dbPromise = idb.open("brinRRstage3");
-    dbPromise.then(db => {
-      if (!db.objectStoreNames.length) {
-        console.log("DB not available");
-        db.close();
-        return;
-      }
-
-      const tx = db.transaction("pending", "readwrite");
-      tx
-        .objectStore("pending")
-        .openCursor()
-        .then(cursor => {
-          if (!cursor) {
-            return;
-          }
-          const value = cursor.value;
-          url = cursor.value.data.url;
-          method = cursor.value.data.method;
-          body = cursor.value.data.body;
-
-          // If we don't have a parameter then we're on a bad record that should be tossed
-          // and then move on
-          if ((!url || !method) || (method === "POST" && !body)) {
-            cursor
-              .delete()
-              .then(callback());
-            return;
-          };
-
-          const properties = {
-            body: JSON.stringify(body),
-            method: method
-          }
-          console.log("sending post from queue: ", properties);
-          fetch(url, properties)
-            .then(response => {
-            // If we don't get a good response then assume we're offline
-            if (!response.ok && !response.redirected) {
-              return;
-            }
-          })
-            .then(() => {
-              // Success! Delete the item from the pending queue
-              const deltx = db.transaction("pending", "readwrite");
-              deltx
-                .objectStore("pending")
-                .openCursor()
-                .then(cursor => {
-                  cursor
-                    .delete()
-                    .then(() => {
-                      callback();
-                    })
-                })
-              console.log("deleted pending item from queue");
-            })
-        })
-        .catch(error => {
-          console.log("Error reading cursor");
-          return;
-        })
-    })
-  }
-
-  static updateCacheRestaurantData(id, updateObj) {
-    const dbPromise = idb.open("brinRRstage3");
-    dbPromise.then(db => {
-      console.log("getting db transaction to move it");
-      const tx = db.transaction("restaurants", "readwrite");
-      const value = tx
-        .objectStore("restaurants")
-        .get("-1")
-        .then(value => {
-          if(!value) {
-            console.log("no more cached data found");
-            return;
-          }
-          const data = value.data;
-          const restaurantArr = data.filter(r => r.id === id);
-          const restaurantObj = restaurantArr[0];
-          if(!restaurantObj)
-            return;
-          const keys = Object.keys(updateObj);
-          keys.forEach(k => {
-            restaurantObj[k] = updateObj[k];
-          })
-          dbPromise.then(db => {
-            const tx = db.transaction("restaurants", "readwrite");
-            tx
-              .objectStore("restaurant")
-              .put({id: "-1", data: data});
-            return tx.complete;
-          })
-        })
-    })
-    dbPromise.then(db => {
-      console.log("getting DB TRANSACTION TO PROCESS");
-      const tx = db.transaction("restaurants", "readwrite");
-      const value = tx
-        .objectStore("restaurants")
-        .get(id + "")
-        .then(value => {
-          if (!value) {
-            console.log("no data found pt2");
-            return;
-          }
-          const restaurantObj = value.data;
-          console.log("specific restaurants object: ", restaurantObj);
-          if (!restaurantObj)
-            return;
-          const keys = Object.keys(udpateObj);
-          keys.forEach(k => {
-            restaurantObj[k] = updateObj[k];
-          })
-
-          dbPromise.then(db => {
-            const tx = db.transaction("restaurants", "readwrite");
-            tx
-              .objectStore("restaurants")
-              .put({
-                id: id + "",
-                data: restaurantObj
-              });
-              return tx.complete;
-          })
-        })
-    })
-  }
-
-  //placeholder for alternate favorite method if needed
-
-  //cache iteration to prep for new review input
-  static updateCachedRestaurantReview(id, bodyObj) {
-    console.log("Lets update cache for new review: ", bodyObj);
-    const dbPromise = idb.open("brinRRstage3");
-    dbPromise.then(db => {
-      const tx = db.transaction("reviews", "readwrite");
-      const store = tx.objectStore("reviews");
-      console.log("putting the review in question into store");
-      store.put({
-        id: "restaurant_id",
-        data: bodyObj
-      });
-      console.log("I put the cached review in the store");
-      return tx.complete;
-    })
-  }
-
-  //function to handle new reviews coming up through the interface
-  static saveNewReview(id, bodyObj, callback) {
-    const dbPromise = idb.open("brinRRstage3");
-    const url = `${DBHelper.DATABASE_REVIEWS_URL}`;
-    const method = "POST";
-    DBHelper.updateCachedRestaurantReview(id, bodyObj);
-    DBHelper.addPendingRequestToQueue(url, method, bodyObj);
-    console.log("saveNewReview callback sent up to pendingRequesttoQueue");
-    callback(null,null);
-  }
-
-  /*
   entrypoint from review.js to pass the saved review through the
   offline queue to the online queue and up to the json
   */
   static saveReview(id, name, rating, comment, callback) {
-    const btn = document.getElementById("btnSaveReview");
-    btn.onclick = null;
 
     const body = {
       restaurant_id: id,
@@ -427,15 +219,19 @@ class DBHelper {
       comments: comment,
       createdAt: Date.now()
     }
-    DBHelper.saveNewReview(id, body, (error, result) => {
-      if (error) {
-        console.log("call to saveNewReview failed after creating const body");
-        callback(error, null);
-        return;
-      }
-      console.log("saveNewReview initialized");
-      callback(null, result);
-    })
+    
   }
 }
-window.DBHelper = DBHelper;
+
+/*
+function saveReview() {
+    return fetch(URL)
+        .then(res => res.json())
+        .then(json => {
+            if (!json) return;
+            //add to reviews db here 
+        })
+        
+        
+}
+*/

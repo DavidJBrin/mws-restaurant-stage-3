@@ -16,6 +16,9 @@ if ('serviceWorker' in navigator) {
  */
 document.addEventListener('DOMContentLoaded', (event) => {  
   initMap();
+  if (navigator.onLine) {
+    DBHelper.submitDeferred();
+  }
 });
 
 /**
@@ -232,5 +235,5 @@ const handleFavoriteClick = (id, newState) => {
     this.restaurant.is_favorite = "true";
 
   }
-  idbProject.updateRestaurant(id, newState);
+  idbProject.updateFavorite(id, newState);
 };

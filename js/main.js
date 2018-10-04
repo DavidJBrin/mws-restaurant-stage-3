@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initMap(); // added 
   fetchNeighborhoods();
   fetchCuisines();
+  if (navigator.onLine) {
+    DBHelper.submitDeferred();
+  }
 });
 
 /**
