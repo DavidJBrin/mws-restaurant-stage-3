@@ -206,6 +206,25 @@ class DBHelper {
     return marker;
   } 
   
+  static submitDeferred() {
+    idbProject.dbPromise.then( db => {
+      const store = db.transaction('offlineReviews').objectStore('offlineReviews');
+      store.getAll()
+        .then(revs => {
+          if(revs.length === 0) return;
+          return Promise.all(revs.map( rev => {
+            return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
+              method: 'POST',
+              body: JSON.stringify({
+                restaurant_id: rev.restaurant_id,
+                name: rev.name,
+                createdAt: rev.deferredAt,
+              })
+            })
+          }))
+        })
+    })
+  }
   /*
   entrypoint from review.js to pass the saved review through the
   offline queue to the online queue and up to the json

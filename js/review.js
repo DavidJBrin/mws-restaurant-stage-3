@@ -98,7 +98,7 @@ const saveReview = () => {
         .value;
     
     console.log("reviewName: ", name);
-    
+    debugger;
     DBHelper.saveReview(self.restaurant.id, name, rating, comment)
         .then(() => {
             window.location.href= "/restaurant.html?id=" + self.restaurant.id;

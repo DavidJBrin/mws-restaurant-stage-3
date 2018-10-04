@@ -26,13 +26,14 @@ var idbProject = (function() {
         case 1:
           {
             console.log('Creating Review Object Store');
-            const reviewsStore = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
-            reviewsStore.createIndex('restaurant_id', 'restaurant_id');
+            const reviewStore = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
+            reviewStore.createIndex('restaurantID', ['restaurant_id', 'createdAt']);
           }
         case 2: 
           {
-            console.log('creating the offline-pending object store');
-            upgradeDB.createObjectStore('pending', {keyPath: 'id', autoIncrement: true});
+            console.log('creating the offlineReviews object store');
+            const offlineStore = upgradeDB.createObjectStore('offlineReviews', {keyPath: 'deferredAt'});
+            offlineStore.createIndex('restaurantID', ['restaurant_id', 'deferredAt']);
           }
       }
     });
@@ -61,13 +62,12 @@ var idbProject = (function() {
       })
     }
 
-// add reviews to database 
 function addReviews(id, callback) {
   fetch(DBHelper.DATABASE_REVIEW_URL + id)
-    .then (response => response.json())
-    .then (function(reviews) {
-      console.log('successfully pulled review json data')
-      // now cache it
+  .then (response => response.json())
+  .then (function(reviews) {
+    console.log('successfully pulled review json data')
+    // now cache it
     dbPromise.then ( (db) => {
       if (!db) return;
 
@@ -77,17 +77,30 @@ function addReviews(id, callback) {
         }
         callback(null, reviews);
     })
-    .catch(error => {
-      let reviewValStore = db.transaction('reviews', 'restaurant', id)
-      .then ((storedReviews) => {
-        console.log('getting offline reviews');
-        return Promise.resolve(storedReviews);
-      })
-    })
-    })
-
+    /*
+      Method based on zoom call and review of code with Greg Pawlowski and modeled on
+      approach used in his repo: https://github.com/gregpawlowski/mws-restaurant-stage1/blob/master/src/js/dbhelper.js
+      */
+    .catch(e => {
+      // Error fetching, try geting reviews from IDB.
+      idbProject.dbPromise.then(db => {
+        const tx = db.transaction(['reviews', 'deferredReviews'])
+        const revStore = tx.objectStore('reviews').index('restaurantID');
+        const deferredStore = tx.objectStore('offlineReviews').index('restaurantID');
+        id = parseInt(id);
+        // Create range to include only id, the index is a compound index on id + create date
+        const range = IDBKeyRange.bound([id], [id+1], true, false);
+        Promise.all([revStore.getAll(range), deferredStore.getAll(range)])
+          .then(reviews => {
+            reviews = [...reviews[0], ...reviews[1]];
+            if (!reviews) return callback(`An error occured: ${e.message}`, null);
+            if (reviews.length === 0) return callback(null, null);
+            callback(null, reviews);
+          });
+      });
+    });
+  })
 }
-
 
     //update the restaurant with favorites
     function updateFavorite(id, newState) {
@@ -133,21 +146,6 @@ function addReviews(id, callback) {
       }).then(allObjs => console.log(allObjs));
     }
   
-    //add pending reviews up to the db
-    function addPending(url, method, body) {
-      dbPromise.then(db => {
-        const tx = db.transaction('pending', 'readwrite'); 
-        tx
-          .objectStore('pending')
-          .put({
-            data: {
-              url,
-              method,
-              body
-            }
-          })
-      })
-    }
     //send back the promises 
     return {
       dbPromise: (dbPromise),
@@ -155,8 +153,7 @@ function addReviews(id, callback) {
       addReviews: (addReviews),
       updateFavorite: (updateFavorite),
       getByID: (getByID),
-      getAll: (getAll),
-      addPending: (addPending)
+      getAll: (getAll)
     };
      
   })();
