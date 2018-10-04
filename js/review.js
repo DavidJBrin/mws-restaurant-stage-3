@@ -5,11 +5,12 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(function(registration) {
       console.log('Service worker registration succeeded:', registration);
     }, /*catch*/ function(error) {
-      console.log('Service worker registration failed:', error);
+    console.log('Service worker registration failed:', error);
     });
-  } else {
+} 
+else {
     console.log('Service workers are not supported.');
-  };
+};
 
 document.addEventListener('DOMContentLoaded', (event) => {
     console.log('loading restaurant url for page foundation');
@@ -82,26 +83,55 @@ const handleFavoriteClick = (id, newState) => {
     self.restaurant["is_favorite"] = newState;
     favorite.onclick = event => handleFavoriteClick(restaurant.id, !self.restaurant["is_favorite"]);
     DBHelper.handleFavoriteClick(id, newState);
-  };
+  }
 
 //function to support the dbhelper saveReview static
-const saveReview = () => {
-    
-    const name = document
-        .getElementById("reviewName")
-        .value;
-    const rating = document
-        .getElementById("reviewRating")
-        .value - 0;
-    const comment = document
-        .getElementById("reviewComment")
-        .value;
-    
-    console.log("reviewName: ", name);
-    debugger;
-    DBHelper.saveReview(self.restaurant.id, name, rating, comment)
-        .then(() => {
-            window.location.href= "/restaurant.html?id=" + self.restaurant.id;
+const addReviewListener = () => {
+    this.form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(this.form);
+        const body = {
+            restaurant_id: parseInt(this.id),
+            name: formData.get('name'),
+            rating: parseInt(formData.get('rating')),
+            comments: formData.get('comments'),
+            restaurant_name: self.restaurant.name
+        };
+        //push review up to the server
+        fetch(this.url, {
+            method: 'POST',
+            body: JSON.stringify(body)
         })
-        .catch()//dbhelper.deferoffline);
+        .then(response => response.json())
+        .then(review => {
+            if (!review) return new Error('No review on submission press');
+            this.addReview(review);
+        })
+        .catch(err => {
+            if (!navigator.onLine) {
+                this.deferSubmission(data);
+                return this.addReview(data);
+            }
+            console.log(err);
+        });
+        window.location.href= "/restaurant.html?id=" + self.restaurant.id;
+    });
+}
+    
+const addReview = (review) => {
+        const ul = document.getElementById('reviews-list');
+        const reviewItem = restaurant_info.createReviewHTML(review);
+        ul.appendChild(reviewItem);
+    }
+
+const deferSubmission = (review) => {
+        review.deferredAt = new Date();
+        idbProject.dbPromise.then(db => {
+            const deferStore = db.transaction('pending', 'readwrite').objecStore('pending');
+            return deferStore.put(review);
+        })
+        .then(() => {
+            window.addEventListener('online', DBHelper.submitDeferred);
+        })
+        .catch(err => console.log('Could not write to deferred storage', err));
 }

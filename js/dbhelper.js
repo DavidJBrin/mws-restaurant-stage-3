@@ -240,32 +240,6 @@ class DBHelper {
         })
     })
   }
-  /*
-  entrypoint from review.js to pass the saved review through the
-  offline queue to the online queue and up to the json
-  */
-  static saveReview(id, name, rating, comment, callback) {
+}  
 
-    const body = {
-      restaurant_id: id,
-      name: name,
-      rating: rating,
-      comments: comment,
-      createdAt: Date.now()
-    }
-    
-  }
-}
 
-/*
-function saveReview() {
-    return fetch(URL)
-        .then(res => res.json())
-        .then(json => {
-            if (!json) return;
-            //add to reviews db here 
-        })
-        
-        
-}
-*/

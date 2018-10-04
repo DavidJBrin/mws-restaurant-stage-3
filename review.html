@@ -51,31 +51,35 @@
         </section>
 
         <section id="review">
-            <div>
-                <label>
-                    <span class="review-text">Your Name</span>
-                    <input type="text" required="required" id="reviewName">
-                </label>
-            </div>
-            <div>
-                <label>
-                    <span class="review-text">Rating</span>
-                    <select id="reviewRating">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </label>
-            </div>
-            <div>
-                <label>
-                    <span class="rev-text">Comments</span>
-                    <textarea id="reviewComment" required="required" cols="40" rows="6"></textarea>
-                </label>
-            </div>
-            <button id="btnSaveReview" onclick="saveReview()">Save Review</button>
+            <form>
+                <div>
+                    <label>
+                        <span class="review-text">Your Name</span><br>
+                        <input type="text" required="required" id="name">
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        <span class="review-text">Rating</span><br>
+                        <select id="rating">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        <span class="rev-text">Comments</span><br>
+                        <textarea id="rating" required="required" cols="40" rows="6"></textarea>
+                    </label>
+                </div>
+                <div>
+                    <input type="submit" id="btnSaveReview" value="Send Review">
+                </div>
+            </form>
         </section>
     </main>
    
@@ -90,4 +94,3 @@
     <script type="application/javascript" charset="utf-8" src="sw.js"></script>
 </body>
 </html>
-
