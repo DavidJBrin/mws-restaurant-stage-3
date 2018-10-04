@@ -80,7 +80,7 @@ function addReviews(id, callback) {
     /*
       Method based on zoom call and review of code with Greg Pawlowski and modeled on
       approach used in his repo: https://github.com/gregpawlowski/mws-restaurant-stage1/blob/master/src/js/dbhelper.js
-      */
+    */
     .catch(e => {
       // Error fetching, try geting reviews from IDB.
       idbProject.dbPromise.then(db => {

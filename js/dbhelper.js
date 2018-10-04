@@ -205,10 +205,15 @@ class DBHelper {
       marker.addTo(newMap);
     return marker;
   } 
-  
+
+/*
+  Method based on zoom call and review of code with Greg Pawlowski and modeled on
+  approach used in his repo: https://github.com/gregpawlowski/mws-restaurant-stage1/blob/master/src/js/dbhelper.js
+*/
   static submitDeferred() {
     idbProject.dbPromise.then( db => {
       const store = db.transaction('offlineReviews').objectStore('offlineReviews');
+      const submittedRes = {};
       store.getAll()
         .then(revs => {
           if(revs.length === 0) return;
@@ -219,8 +224,18 @@ class DBHelper {
                 restaurant_id: rev.restaurant_id,
                 name: rev.name,
                 createdAt: rev.deferredAt,
-              })
+                rating: rev.rating,
+                comments: rev.comments
+              })              
             })
+            .then(response => {
+              if (!response.ok) {
+                throw Error(response.statusText);
+              }
+              return response.json();
+            })
+            const store =  db.transaction('offlineReviews', 'readwrite').objectStore('offlineReviews');
+            store.clear();
           }))
         })
     })
