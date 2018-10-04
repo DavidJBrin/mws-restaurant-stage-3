@@ -361,3 +361,51 @@ nav {
     display: inline-block;
     font-size: 16px;
 }
+
+/* 
+Adding formatting for review area of restaurant.html
+posting the review form
+*/
+.form {
+  background-color: white;
+  border-radius: 30px;
+  padding: 30px;
+  width: 100%;
+  max-width: 700px;
+}
+.form--centered {
+  margin-left: auto;
+  margin-right: auto;
+}
+.form__label {
+  color: rgba(0, 0, 0, .8);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+.form__title {
+  color: #f58500;
+  font-size: 18pt;
+  text-align: center;
+}
+.form__button {
+  color: black;
+  background: white;
+  border-radius: 20px;
+  border: 1px solid #f58500;
+  outline: none;
+  width: 25%;
+  padding: 10px 0;
+}
+.form__button:hover {
+  background-color: #f58500;
+  color: white;
+  cursor: pointer;
+}
+.form__button--hover-red:hover {
+  background-color: #c11300;
+}
+.form__group--flex-column {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}

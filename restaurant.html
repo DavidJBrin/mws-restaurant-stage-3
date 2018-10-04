@@ -83,10 +83,42 @@
     <!-- Beginning reviews -->
     <section id="reviews-container">
       <p><button id="restaurant-favorite" aria-label="Toggle to like or unlike restaurant"></button><br>Click to Like or Unlike this Restaurant</p>
-      <h3><a id="restaurant-review-form" aria-label="Click to add a restaurant review" href=""></a></h3>
       <ul id="reviews-list"></ul>
     </section>
     <!-- End reviews -->
+    <section id="add-review">
+      <form class="form form--centered">
+        <h2 class="form__title">Submit New Review</h2>
+        <div class="form__group">
+          <label for="name" class="form__label">Name</label>
+          <div class="form__control">
+            <input type="text" name="name" id="name" required/>
+          </div>
+        </div>
+        <div class="form__group">
+          <label for="rating" class="form__label">Rating</label>
+          <div class="form__control">
+            <select id="rating">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+          </select>
+          </div>
+        </div>
+        <div class="form__group">
+          <label for="comments" class="form__label">Comments</label>
+          <div class="form__control">
+            <textarea name="comments" id="comments" rows="5" required></textarea>
+          </div>
+        </div>
+        <div class="form__group--flex-column">
+          <input type="submit" value="Submit" class="form__button">
+          <input type="reset" value="Reset Form" class="form__button form__button--hover-red">
+        </div>
+      </form>
+</section>
   </main>
   <!-- End main -->
 

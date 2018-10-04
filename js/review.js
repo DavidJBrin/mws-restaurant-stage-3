@@ -85,8 +85,7 @@ const handleFavoriteClick = (id, newState) => {
     DBHelper.handleFavoriteClick(id, newState);
   }
 
-//function to support the dbhelper saveReview static
-const addReviewListener = () => {
+  function addReviewListener() {
     this.form.addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = new FormData(this.form);
@@ -109,25 +108,26 @@ const addReviewListener = () => {
         })
         .catch(err => {
             if (!navigator.onLine) {
-                this.deferSubmission(data);
-                return this.addReview(data);
+                this.deferSubmission(body);
+                return this.addReview(body);
             }
             console.log(err);
         });
-        window.location.href= "/restaurant.html?id=" + self.restaurant.id;
+
+this.form.reset();
     });
 }
     
-const addReview = (review) => {
-        const ul = document.getElementById('reviews-list');
+function addReview(review) {
+        const il = document.getElementById('reviews-list');
         const reviewItem = restaurant_info.createReviewHTML(review);
-        ul.appendChild(reviewItem);
+        il.appendChild(reviewItem);
     }
 
-const deferSubmission = (review) => {
+function deferSubmission(review) {
         review.deferredAt = new Date();
         idbProject.dbPromise.then(db => {
-            const deferStore = db.transaction('pending', 'readwrite').objecStore('pending');
+            const deferStore = db.transaction('offlineReviews', 'readwrite').objecStore('offlineReviews');
             return deferStore.put(review);
         })
         .then(() => {
@@ -135,3 +135,4 @@ const deferSubmission = (review) => {
         })
         .catch(err => console.log('Could not write to deferred storage', err));
 }
+

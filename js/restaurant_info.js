@@ -112,12 +112,6 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
 
-  // add "add review" interface
-  review = document.getElementById('restaurant-review-form');
-  review.href = DBHelper.urlForReviewForm(restaurant);
-  review.setAttribute('aria-label', 'Review form for ' + restaurant.name);
-  review.innerText = "Add Review";
-
   // fill reviews
   idbProject.addReviews(restaurant.id, fillReviewsHTML);
 };

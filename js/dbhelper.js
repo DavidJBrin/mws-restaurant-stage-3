@@ -179,9 +179,6 @@ class DBHelper {
     return (`./restaurant.html?id=${restaurant.id}`);
   }
 
-  static urlForReviewForm(restaurant) {
-    return (`./review.html?id=${restaurant.id}`);
-  }
   /**
    * Restaurant image URL.
    */
