@@ -19,12 +19,14 @@ var idbProject = (function() {
   }
 
   // initiate DB magic and mumbojumbo
-  var dbPromise = idb.open('brin-restaurant-review-stage2', 1, function(upgradeDB) {
+  var dbPromise = idb.open('brin-restaurant-review-stage3', 1, function(upgradeDB) {
     switch (upgradeDB.oldVersion) {
       case 0:
         upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
         const reviewsStore = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
         reviewsStore.createIndex('restaurantID', ['restaurant_id', 'createdAt']);
+        const deferredStore = upgradeDB.createObjectStore('deferredReviews', {keyPath: 'deferredAt'});
+        deferredStore.createIndex('restaurantID', ['restaurant_id', 'deferredAt']);
     }
   });
 
@@ -64,23 +66,23 @@ var idbProject = (function() {
       const tx = db.transaction('reviews', 'readwrite');
       const store = tx.objectStore('reviews');
       reviews.forEach(rev => store.put(rev));
-      console.log('reviews pulled from server with saveReviews');
       return reviews;
     })
   }
 
   function getReviews(reviews) {
     idbProject.dbPromise.then(db => {
-      console.log('getReviews offline triggered/accessed');
-      const tx = db.transaction('reviews');
+      const tx = db.transaction(['reviews', 'deferredReviews'])
       const revStore = tx.objectStore('reviews').index('restaurantID');
+      const deferredStore = tx.objectStore('deferredReviews').index('restaurantID');
       id = parseInt(id);
-      const range = IDBKeyRange.bound([id], true, false);
-      Promise.all(revStore.getAll(range))
+      const range = IDBKeyRange.bound([id], [id+1], true, false);
+      Promise.all([revStore.getAll(range), deferredStore.getAll(range)])
         .then(reviews => {
           reviews =[...reviews[0], ...reviews[1]];
           if (!reviews) return callback(`An error occured: ${e.message}`)
-          if (reviews.length === 0) return callback(null)
+          if (reviews.length === 0) return callback(null, null);
+          callback(null,reviews);
         })
     })
     console.log('Reviews passed up through getReviews')
@@ -345,7 +347,48 @@ class DBHelper {
       marker.addTo(newMap);
     return marker;
   } 
-  
-
+  static submitDeferred() {
+    DBHelper.DBPromised.then( db => {
+      const store =  db.transaction('deferredReviews').objectStore('deferredReviews');
+      const submittedRes = {};
+      store.getAll()
+      .then( revs => {
+        if (revs.length === 0) return;
+        return Promise.all(revs.map( rev => {
+          return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
+            method: 'POST',
+            body: JSON.stringify({
+              restaurant_id: rev.restaurant_id,
+              name: rev.name,
+              createdAt: rev.deferredAt,
+              rating: rev.rating,
+              comments: rev.comments
+            })
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw Error(response.statusText);
+            }
+            return response.json();
+          })
+          .then(json => {
+            if (rev.restaurant_name in submittedRes) {
+              submittedRes[rev.restaurant_name] = submittedRes[rev.restaurant_name] + 1;
+            } else {
+              submittedRes[rev.restaurant_name] = 1;
+            }
+            return json;
+          });
+        }));
+      })
+      .then((serverRevs) => {
+          if (!serverRevs) return;
+          if (Object.keys(submittedRes).length === 0) return;
+          const store =  db.transaction('deferredReviews', 'readwrite').objectStore('deferredReviews');
+          store.clear();
+        });
+    });
 }
 
+//end of dbhelper
+}
