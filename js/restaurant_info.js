@@ -90,6 +90,8 @@ fetchRestaurantFromURL = (callback) => {
  * Create restaurant HTML and add it to the webpage
  */
 fillRestaurantHTML = (restaurant = self.restaurant) => {
+  let favorite;
+  
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
 
@@ -105,6 +107,18 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
 
+  //favorite button
+  favorite = document.getElementById('restaurant-favorite');
+  if (restaurant.is_favorite == "undefined")
+    restaurant.is_favorite="false";
+    favorite.setAttribute('aria-label', 'Click to favorite or unfavorite' + restaurant.name)
+    favorite.onclick = event => handleFavoriteClick(restaurant.id, restaurant.is_favorite);
+  if (restaurant.is_favorite === "true") {
+    favorite.innerText = '❤' + restaurant.name;
+  }
+  else {
+    favorite.innerText = '♡' + restaurant.name;
+  }
   // fill operating hours
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
@@ -207,3 +221,20 @@ getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
+
+//handle the click behavior for favorite
+const handleFavoriteClick = (id, newState) => {
+  favorite = document.getElementById('restaurant-favorite');
+  //update the item
+  if (newState === "true") {
+    favorite.innerText = '♡' + this.restaurant.name;
+    newState = "false";
+    this.restaurant.is_favorite = "false";
+  }
+  else {
+    favorite.innerText = '❤' + this.restaurant.name;
+    newState = "true";
+    this.restaurant.is_favorite = "true";
+  }
+  idbProject.updateFavorite(id, newState);
+};

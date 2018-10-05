@@ -108,6 +108,29 @@ var idbProject = (function() {
     }).then(allObjs => console.log(allObjs));
   }
 
+//update the restaurant with favorites
+function updateFavorite(id, newState) {
+  const url = DBHelper.DATABASE_URL + `/${id}/?is_favorite=${newState}`;
+  console.log(url);
+  const method = "PUT";
+  fetch (url, {method})
+    .then(response => response.json())
+    .catch(error => console.error("Updating favorite failed"))
+    .then(() => {
+      console.log('changed');
+      dbPromise.then( (db) => {
+        let restaurantValStore = db.transaction('restaurants', 'readwrite').objectStore('restaurants');
+          restaurantValStore.get(id)
+            .then(restaurant => {
+              console.log(restaurant);
+              restaurant.is_favorite = newState;
+              restaurantValStore.put(restaurant);
+            })
+      })
+    })
+}
+
+
   //send back the promises 
   return {
     dbPromise: (dbPromise),
@@ -115,7 +138,8 @@ var idbProject = (function() {
     getByID: (getByID),
     getRestaurantsAll: (getRestaurantsAll),
     saveReviews: (saveReviews),
-    getReviews: (getReviews)    
+    getReviews: (getReviews),
+    updateFavorite: (updateFavorite)   
   };
    
 })();

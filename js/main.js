@@ -176,8 +176,16 @@ createRestaurantHTML = (restaurant) => {
 
 /* changing h1->h2 to maintain hierarchy for Accessibility */
   const name = document.createElement('h2');
-  name.innerHTML = restaurant.name;
-  li.append(name);
+    let faveName;
+    if (restaurant["is_favorite"] && restaurant["is_favorite"].toString() === "true")
+    { 
+      faveName = '❤' + restaurant.name;
+    }
+    else {
+      faveName = '♡' + restaurant.name;
+    }
+    name.innerHTML = faveName;
+    li.append(name);
 
   const neighborhood = document.createElement('p');
   neighborhood.innerHTML = restaurant.neighborhood;
