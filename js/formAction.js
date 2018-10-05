@@ -1,11 +1,13 @@
- function constructorForm (form, url) {
+class formAction {
+    constructor(form, url) {
       this.form = form;
       this.url = url;
       this.addListener();
       this.id = Number(self.getParameterByName('id'));
   }
-  
-function addListener() {
+}
+ 
+ function addListener() {
     var reviewForm = document.getElementsByClassName("form")[0];
     reviewForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -37,6 +39,7 @@ function addListener() {
             }
             console.log(err);
         });
+        //need to reset form somehow setting all to default.
     });
 }
 

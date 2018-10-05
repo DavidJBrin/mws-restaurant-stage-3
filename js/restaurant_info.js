@@ -16,14 +16,17 @@ if ('serviceWorker' in navigator) {
  */
 document.addEventListener('DOMContentLoaded', (event) => {  
   initMap();
-    formAction.constructorForm(document.querySelector('form'), 'http://localhost:1337/reviews/');
   });
 
+
+  
 /**
  * Initialize leaflet map
  */
 initMap = () => {
   addListener();
+
+ 
   fetchRestaurantFromURL((error, restaurant) => {
     if (error) { // Got an error!
       console.error(error);
