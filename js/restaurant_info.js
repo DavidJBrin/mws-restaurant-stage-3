@@ -112,7 +112,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   // fill reviews
   DBHelper.getRestaurantReviews(getParameterByName('id'))
     .then(reviews => fillReviewsHTML(reviews))
-    .catch(err => console.log('Couldnt\' fetch reviews', err));
+    .catch(err => console.log('Could not fetch reviews', err));
   
 }
 

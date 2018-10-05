@@ -28,34 +28,63 @@ var idbProject = (function() {
     }
   });
 
-
-  function addRestaurants() {
+  function addRestaurants(callback) {
     fetch(DBHelper.DATABASE_URL)
-    .then(response => response.json())
-    .then(function(restaurants) {
-      return dbPromise.then((db) => {
-        let restaurantValStore = db.transaction('restaurants', 'readwrite').objectStore('restaurants')
-          for (const restaurant of restaurants) {
-            restaurantValStore.put(restaurant)
-          }
-      })
-      //send the information back out
-      callback(null, restaurants);
-    }).catch(function (err) {
-      return dbPromise.then( (db) => {
-        let restaurantValStore = db.transaction('restaurants').objectStore('restaurants')
-        return restaurantValStore.getAll();
-      })
-    })
-  }
+    .then(response => {
+      if (!response.ok) {
+        throw Error(response.statusText);
+      }
+      return response.json().then((json) => {
+        idbProject.dbPromise.then ((db) => {
+          if (!db) return;
+          
+          const tx = db.transaction('restaurants', 'readwrite');
+          const store = tx.objectStore('restaurants');
+          json.forEach((restaurant) => {
+            store.put(restaurant);
+          });
+        });
+        callback(null, json);
+      });
+    }).catch(e => {
+      DBHelper.DBPromised.then(db => {
+        const store = db.transaction('restaurants').objectStore('restaurants');
+
+        store.getAll()
+          .then(restaurants => {
+            if (!restaurants) callback(`Couldn't find restaurants in IDB: ${e.message}`, null);
+            callback(null, restaurants);
+          });
+      });
+});
+}
 
   function saveReviews(reviews) {
     return dbPromise.then(db => {
       const tx = db.transaction('reviews', 'readwrite');
       const store = tx.objectStore('reviews');
       reviews.forEach(rev => store.put(rev));
+      console.log('reviews pulled from server with saveReviews');
       return reviews;
     })
+  }
+
+  function getReviews(reviews) {
+    idbProject.dbPromise.then(db => {
+      console.log('getReviews offline triggered/accessed');
+      const tx = db.transaction('reviews');
+      const revStore = tx.objectStore('reviews').index('restaurantID');
+      id = parseInt(id);
+      const range = IDBKeyRange.bound([id], true, false);
+      Promise.all(revStore.getAll(range))
+        .then(reviews => {
+          reviews =[...reviews[0], ...reviews[1]];
+          if (!reviews) return callback(`An error occured: ${e.message}`)
+          if (reviews.length === 0) return callback(null)
+        })
+    })
+    console.log('Reviews passed up through getReviews')
+    return reviews;
   }
 
   //get the restaurants using the id field for the identifier
@@ -86,7 +115,7 @@ var idbProject = (function() {
     getByID: (getByID),
     getRestaurantsAll: (getRestaurantsAll),
     saveReviews: (saveReviews),
-    
+    getReviews: (getReviews)    
   };
    
 })();
@@ -97,6 +126,7 @@ class DBHelper {
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
+
   static get DATABASE_URL() {
     const port = 1337; // Change this to your server port
     return `http://localhost:${port}/restaurants`;
@@ -105,8 +135,10 @@ class DBHelper {
   static getRestaurantReviews(id) {
     return fetch(`http://localhost:1337/reviews/?restaurant_id=${id}`)
       .then(res => res.json())
-      .then(idbProject.saveReviews);
-      // .catch if fails then go to IDB getr restaurants.
+      .then(idbProject.saveReviews)
+      .catch(e => {
+        idbProject.getReviews;
+      })
   }
   
   /**
@@ -118,6 +150,7 @@ class DBHelper {
     idbProject.addRestaurants(callback);
     //if database hasn't populated, pull from server and populate
     if(!restaurants) {
+      console.log("Restaurants pulled from server");
       fetch(DBHelper.DATABASE_URL)
       .then(function(response) {
         //get from URL
@@ -269,7 +302,10 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (`/img/${restaurant.photograph}.jpg`);
+    //fix the record with missing id field
+    if (restaurant.photograph == undefined)
+      restaurant.photograph = restaurant.id;
+    return (`/img/${restaurant.photograph}` + ".jpg");
   }
 
   /**
