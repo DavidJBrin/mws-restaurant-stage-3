@@ -1,26 +1,113 @@
 /**
  * Common database helper functions.
  */
-const port = 1337; // Change this to your server port
+
+ /* 
+ Included idb.js as a local file and included the building of the database in the dbhelper file rather than the service worker. While this isn't ideal for production,
+ it was the easiest method for me to follow.
+ The following resources were consulted to help build the database creation code:
+ https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
+ https://developers.google.com/web/ilt/pwa/working-with-indexeddb
+ */
+
+var idbProject = (function() {
+  'use strict';
+
+  //is indexedDB supported; if not throw an error
+  if(!('indexedDB' in window)) {
+    return;
+  }
+
+  // initiate DB magic and mumbojumbo
+  var dbPromise = idb.open('brin-restaurant-review-stage2', 1, function(upgradeDB) {
+    switch (upgradeDB.oldVersion) {
+      case 0:
+        upgradeDB.createObjectStore('restaurants', {keyPath: 'id'});
+        const reviewsStore = upgradeDB.createObjectStore('reviews', {keyPath: 'id'});
+        reviewsStore.createIndex('restaurantID', ['restaurant_id', 'createdAt']);
+    }
+  });
+
+
+  function addRestaurants() {
+    fetch(DBHelper.DATABASE_URL)
+    .then(response => response.json())
+    .then(function(restaurants) {
+      return dbPromise.then((db) => {
+        let restaurantValStore = db.transaction('restaurants', 'readwrite').objectStore('restaurants')
+          for (const restaurant of restaurants) {
+            restaurantValStore.put(restaurant)
+          }
+      })
+      //send the information back out
+      callback(null, restaurants);
+    }).catch(function (err) {
+      return dbPromise.then( (db) => {
+        let restaurantValStore = db.transaction('restaurants').objectStore('restaurants')
+        return restaurantValStore.getAll();
+      })
+    })
+  }
+
+  function saveReviews(reviews) {
+    return dbPromise.then(db => {
+      const tx = db.transaction('reviews', 'readwrite');
+      const store = tx.objectStore('reviews');
+      reviews.forEach(rev => store.put(rev));
+      return reviews;
+    })
+  }
+
+  //get the restaurants using the id field for the identifier
+  function getByID(id) {
+    return dbPromise.then(function(db) {
+      const txtion = db.transaction('restaurants', 'readonly');
+      const store = txtion.objectStore('restaurants');
+      return store.get(parseInt(id));
+    }).then(function(restaurantObject) {
+      return restaurantObject;
+    }).catch(function(z) {
+      console.log('Fetch Function errored out:', z);
+    });
+  }
+
+  //retrieve the restaurants like a champ
+  function getRestaurantsAll() {
+    dbPromise.then(db => {
+      return db.transaction('restaurants').objectstore('restaurants')
+      .getRestaurantsAll();
+    }).then(allObjs => console.log(allObjs));
+  }
+
+  //send back the promises 
+  return {
+    dbPromise: (dbPromise),
+    addRestaurants: (addRestaurants),
+    getByID: (getByID),
+    getRestaurantsAll: (getRestaurantsAll),
+    saveReviews: (saveReviews),
+    
+  };
+   
+})();
+
 class DBHelper {
 
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
-  static get DATABASE_RESTAURANT_URL() {
+  static get DATABASE_URL() {
+    const port = 1337; // Change this to your server port
     return `http://localhost:${port}/restaurants`;
   }
 
-  static get DATABASE_REVIEW_URL() {
-    console.log('Accessed review url builder');
-    return `http://localhost:${port}/reviews/?restaurant_id=`;
+  static getRestaurantReviews(id) {
+    return fetch(`http://localhost:1337/reviews/?restaurant_id=${id}`)
+      .then(res => res.json())
+      .then(idbProject.saveReviews);
+      // .catch if fails then go to IDB getr restaurants.
   }
-
-  static get DATABASE_ADD_REVIEW_URL() {
-    return `http://localhost:${port}/reviews`;
-  }
-    
   
   /**
    * Fetch all restaurants.
@@ -31,7 +118,7 @@ class DBHelper {
     idbProject.addRestaurants(callback);
     //if database hasn't populated, pull from server and populate
     if(!restaurants) {
-      fetch(DBHelper.DATABASE_RESTAURANT_URL)
+      fetch(DBHelper.DATABASE_URL)
       .then(function(response) {
         //get from URL
         return response.json();
@@ -59,14 +146,13 @@ class DBHelper {
     const restaurant = idbProject.getByID(id);
     restaurant.then(function(restaurantObject) {
       if (restaurantObject) {
-        console.log("the fetchRestaurantsByID got from IndexDB");
+        console.log("the fetchRestaurantsByID got from Index");
         callback(null, restaurantObject);
         return;
       }
       else {
         DBHelper.fetchRestaurants((error, restaurants) => {
           if (error) {
-            console.log("error occurring in fetchRestaurantsByID 1st else");
             callback(error, null);
           } else {
             const restaurant = restaurants.find(r => r.id == id);
@@ -74,7 +160,7 @@ class DBHelper {
               console.log('fetchRestaurantsById from network succeeded');
               callback(null, restaurant);
             } else { // Restaurant does not exist in the database
-              console.log('fetchRestaurantsById failed Restaurant Does not exist');
+              console.log('fetchRestaurantsById failed');
               callback('Restaurant does not exist', null);
             }
           }
@@ -183,10 +269,7 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    //fix the record with missing id field
-    if (restaurant.photograph == undefined)
-      restaurant.photograph = restaurant.id;
-    return (`/img/${restaurant.photograph}` + ".jpg");
+    return (`/img/${restaurant.photograph}.jpg`);
   }
 
   /**
@@ -202,41 +285,7 @@ class DBHelper {
       marker.addTo(newMap);
     return marker;
   } 
+  
 
-/*
-  Method based on zoom call and review of code with Greg Pawlowski and modeled on
-  approach used in his repo: https://github.com/gregpawlowski/mws-restaurant-stage1/blob/master/src/js/dbhelper.js
-*/
-  static submitDeferred() {
-    idbProject.dbPromise.then( db => {
-      const store = db.transaction('offlineReviews').objectStore('offlineReviews');
-      const submittedRes = {};
-      store.getAll()
-        .then(revs => {
-          if(revs.length === 0) return;
-          return Promise.all(revs.map( rev => {
-            return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
-              method: 'POST',
-              body: JSON.stringify({
-                restaurant_id: rev.restaurant_id,
-                name: rev.name,
-                createdAt: rev.deferredAt,
-                rating: rev.rating,
-                comments: rev.comments
-              })              
-            })
-            .then(response => {
-              if (!response.ok) {
-                throw Error(response.statusText);
-              }
-              return response.json();
-            })
-            const store =  db.transaction('offlineReviews', 'readwrite').objectStore('offlineReviews');
-            store.clear();
-          }))
-        })
-    })
-  }
-}  
-
+}
 

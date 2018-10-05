@@ -1,9 +1,7 @@
-/*The service worker was updated for Stage 2 to reflect caching changes
-Based on information garnered from the Udacity Course on IDB featuring Wittr
-and conversations with project coach Doug Brown;
-Reorganized and adjusted for Stage 3 to add new files 
-*/
-var staticCacheName = 'mws-restaurant-v21';
+//The service worker was updated for Stage 2 to reflect caching changes
+// Based on information garnered from the Udacity Course on IDB featuring Wittr
+//* and conversations with project coach Doug Brown 
+var staticCacheName = 'mws-restaurant-v1';
 
 // create a cache with the above files
 self.addEventListener('install', function(event) {
@@ -15,16 +13,14 @@ self.addEventListener('install', function(event) {
                     './',
                     './index.html',
                     './restaurant.html',
-                    './manifest.json',
                     './css/styles.css',
-                    './img/',
-                    './icons/',
                     './js/dbhelper.js',
                     './js/idb.js',
-                    './js/idbProject.js',
                     './js/main.js',
                     './js/restaurant_info.js',
-                    './sw.js'   
+                    './sw.js',
+                    './img/',
+                    './manifest.json'
                 ]
             );
         })
