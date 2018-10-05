@@ -1,5 +1,13 @@
+ function constructorForm (form, url) {
+      this.form = form;
+      this.url = url;
+      this.addListener();
+      this.id = Number(self.getParameterByName('id'));
+  }
+  
 function addListener() {
-    this.form.addEventListener('submit', (e) => {
+    var reviewForm = document.getElementsByClassName("form")[0];
+    reviewForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = new FormData(this.form);
         const reviewData = {
@@ -29,7 +37,6 @@ function addListener() {
             }
             console.log(err);
         });
-        this.form.reset();
     });
 }
 
