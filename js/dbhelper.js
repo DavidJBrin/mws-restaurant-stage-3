@@ -108,6 +108,7 @@ var idbProject = (function() {
     }).then(allObjs => console.log(allObjs));
   }
 
+//BUG HUNT
 //update the restaurant with favorites
 function updateFavorite(id, newState) {
   const url = DBHelper.DATABASE_URL + `/${id}/?is_favorite=${newState}`;
@@ -156,7 +157,7 @@ class DBHelper {
   static getRestaurantReviews(id) {
     return fetch(`http://localhost:1337/reviews/?restaurant_id=${id}`)
       .then(res => res.json())
-      .then(idbProject.saveReviews); // Greg: Had to change this logic and take the catch out.
+      .then(idbProject.saveReviews); // Had to change this logic and take the catch out.
   }
   
   /**
