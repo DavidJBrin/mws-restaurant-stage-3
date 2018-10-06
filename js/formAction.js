@@ -11,15 +11,16 @@ class formAction {
     var reviewForm = document.getElementsByClassName("form")[0];
     reviewForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const formData = new FormData(this.form);
+        const formData = new FormData(reviewForm);
         const reviewData = {
-            restaurant_id: parseInt(this.id),
+            restaurant_id: self.restaurant.id,
             name: formData.get('name'),
             rating: parseInt(formData.get('rating')),
             comments: formData.get('comments'),
             restaurant_name: self.restaurant.name
         };
-
+        console.log(reviewData);
+        debugger;
         //send review to the server
         fetch(this.url, {
             method: 'POST',
