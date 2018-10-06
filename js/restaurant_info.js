@@ -1,3 +1,13 @@
+/*
+   * Fetch a restaurant by its ID.
+   * Based on information garnered from the Udacity Course on IDB featuring Wittr
+   * and conversations with project coach Doug Brown
+   * Functionality adjusted and streamlined through coding coaching with Doug Brown
+   * and Greg Pawlowski. Structure suggested and outlined through conversations and
+   * code alongs in order to fold in proper techniques to existing techniques from 
+   * a more informed/skilled perspective.    
+   */
+
 let restaurant;
 var newMap;
 
@@ -16,7 +26,9 @@ if ('serviceWorker' in navigator) {
  */
 document.addEventListener('DOMContentLoaded', (event) => {  
   initMap();
-  });
+  new formAction(document.querySelector('form'), 'http://localhost:1337/reviews/'); // initialize new form object
+  DBHelper.submitDeferred();
+});
 
 
   
@@ -24,9 +36,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
  * Initialize leaflet map
  */
 initMap = () => {
-  addListener();
-
- 
   fetchRestaurantFromURL((error, restaurant) => {
     if (error) { // Got an error!
       console.error(error);
@@ -115,9 +124,17 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  DBHelper.getRestaurantReviews(getParameterByName('id'))
+  const id = getParameterByName('id');
+  DBHelper.getRestaurantReviews(id)
     .then(reviews => fillReviewsHTML(reviews))
-    .catch(err => console.log('Could not fetch reviews', err));
+    .catch(err => {
+      console.log('Could not fetch from server, going to IDB', err);
+      // Getting reviews from IDB instead and then passing them to fillReviewsHTML
+      idbProject.getReviews(id)
+        .then(reviews => {
+          fillReviewsHTML(reviews);
+        });
+    });
   
 }
 

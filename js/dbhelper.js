@@ -49,7 +49,7 @@ var idbProject = (function() {
         callback(null, json);
       });
     }).catch(e => {
-      DBHelper.DBPromised.then(db => {
+      dbPromise.then(db => { 
         const store = db.transaction('restaurants').objectStore('restaurants');
 
         store.getAll()
@@ -70,23 +70,21 @@ var idbProject = (function() {
     })
   }
 
-  function getReviews(reviews) {
-    idbProject.dbPromise.then(db => {
+  function getReviews(id) {
+    return idbProject.dbPromise.then(db => {
       const tx = db.transaction(['reviews', 'deferredReviews'])
       const revStore = tx.objectStore('reviews').index('restaurantID');
       const deferredStore = tx.objectStore('deferredReviews').index('restaurantID');
       id = parseInt(id);
       const range = IDBKeyRange.bound([id], [id+1], true, false);
-      Promise.all([revStore.getAll(range), deferredStore.getAll(range)])
+      return Promise.all([revStore.getAll(range), deferredStore.getAll(range)])
         .then(reviews => {
           reviews =[...reviews[0], ...reviews[1]];
-          if (!reviews) return callback(`An error occured: ${e.message}`)
-          if (reviews.length === 0) return callback(null, null);
-          callback(null,reviews);
-        })
-    })
-    console.log('Reviews passed up through getReviews')
-    return reviews;
+          if (!reviews) return null;
+          if (reviews.length === 0) return null;
+          return reviews;
+        });
+    });
   }
 
   //get the restaurants using the id field for the identifier
@@ -113,18 +111,15 @@ var idbProject = (function() {
 //update the restaurant with favorites
 function updateFavorite(id, newState) {
   const url = DBHelper.DATABASE_URL + `/${id}/?is_favorite=${newState}`;
-  console.log(url);
   const method = "PUT";
   fetch (url, {method})
     .then(response => response.json())
     .catch(error => console.error("Updating favorite failed"))
     .then(() => {
-      console.log('changed');
       dbPromise.then( (db) => {
         let restaurantValStore = db.transaction('restaurants', 'readwrite').objectStore('restaurants');
           restaurantValStore.get(id)
             .then(restaurant => {
-              console.log(restaurant);
               restaurant.is_favorite = newState;
               restaurantValStore.put(restaurant);
             })
@@ -161,10 +156,7 @@ class DBHelper {
   static getRestaurantReviews(id) {
     return fetch(`http://localhost:1337/reviews/?restaurant_id=${id}`)
       .then(res => res.json())
-      .then(idbProject.saveReviews)
-      .catch(e => {
-        idbProject.getReviews;
-      })
+      .then(idbProject.saveReviews); // Greg: Had to change this logic and take the catch out.
   }
   
   /**
@@ -176,7 +168,6 @@ class DBHelper {
     idbProject.addRestaurants(callback);
     //if database hasn't populated, pull from server and populate
     if(!restaurants) {
-      console.log("Restaurants pulled from server");
       fetch(DBHelper.DATABASE_URL)
       .then(function(response) {
         //get from URL
@@ -185,27 +176,28 @@ class DBHelper {
         //get the array
         const restaurants = returnRestaurants;
         callback(null, restaurants);
-        console.log('restaurants cached');
         //no error, return the restaurants
       })
       .catch(function(error) {
         callback(error, null);
-        console.log('restaurants not retrieved and not cached?');
       })
     }
   };
 
-  /**
+  /*
    * Fetch a restaurant by its ID.
    * Based on information garnered from the Udacity Course on IDB featuring Wittr
-   * and conversations with project coach Doug Brown    
+   * and conversations with project coach Doug Brown
+   * Functionality adjusted and streamlined through coding coaching with Doug Brown
+   * and Greg Pawlowski. Structure suggested and outlined through conversations and
+   * code alongs in order to fold in proper techniques to existing techniques from 
+   * a more informed/skilled perspective.    
    */
   static fetchRestaurantById(id, callback) {
     // fetch all restaurants with proper error handling.
     const restaurant = idbProject.getByID(id);
     restaurant.then(function(restaurantObject) {
       if (restaurantObject) {
-        console.log("the fetchRestaurantsByID got from Index");
         callback(null, restaurantObject);
         return;
       }
@@ -216,10 +208,8 @@ class DBHelper {
           } else {
             const restaurant = restaurants.find(r => r.id == id);
             if (restaurant) { // Got the restaurant
-              console.log('fetchRestaurantsById from network succeeded');
               callback(null, restaurant);
             } else { // Restaurant does not exist in the database
-              console.log('fetchRestaurantsById failed');
               callback('Restaurant does not exist', null);
             }
           }
@@ -347,15 +337,16 @@ class DBHelper {
       marker.addTo(newMap);
     return marker;
   } 
+
   static submitDeferred() {
-    DBHelper.DBPromised.then( db => {
+    idbProject.dbPromise.then( db => {
       const store =  db.transaction('deferredReviews').objectStore('deferredReviews');
       const submittedRes = {};
       store.getAll()
       .then( revs => {
         if (revs.length === 0) return;
         return Promise.all(revs.map( rev => {
-          return fetch(`${DBHelper.DATABASE_URL}/reviews`, {
+          return fetch(`http://localhost:1337/reviews`, {
             method: 'POST',
             body: JSON.stringify({
               restaurant_id: rev.restaurant_id,
